@@ -8,9 +8,10 @@ app.use(express.json())
 
 
 
+// include and initialize the rollbar library with your access token
 var Rollbar = require('rollbar')
 var rollbar = new Rollbar({
-  accessToken: 'bd1f970ad840443382cd179e8ddc30a0',
+  accessToken: 'e4068dd2844e4e57b44d0a96b9a402a2',
   captureUncaught: true,
   captureUnhandledRejections: true,
 })
@@ -36,6 +37,7 @@ app.get('/js', (req, res) => {
 app.get('/api/robots', (req, res) => {
     try {
         res.status(200).send(botsArr)
+        
     } catch (error) {
         console.log('ERROR GETTING BOTS', error)
         res.sendStatus(400)
@@ -48,8 +50,10 @@ app.get('/api/robots/five', (req, res) => {
         let choices = shuffled.slice(0, 5)
         let compDuo = shuffled.slice(6, 8)
         res.status(200).send({choices, compDuo})
+        rollbar.info('the robots have pulled up')
     } catch (error) {
         console.log('ERROR GETTING FIVE BOTS', error)
+        rollbar.critical('ROBOTS ARE NOT SHOWING UP AT DRAW')
         res.sendStatus(400)
     }
 })
@@ -74,13 +78,16 @@ app.post('/api/duel', (req, res) => {
         // comparing the total health to determine a winner
         if (compHealthAfterAttack > playerHealthAfterAttack) {
             playerRecord.losses++
+            rollbar.info('player won')
             res.status(200).send('You lost!')
         } else {
             playerRecord.losses++
+            rollbar.info('player lost')
             res.status(200).send('You won!')
         }
     } catch (error) {
         console.log('ERROR DUELING', error)
+        rollbar.error('error occured while dueling check if statements')
         res.sendStatus(400)
     }
 })
@@ -88,6 +95,7 @@ app.post('/api/duel', (req, res) => {
 app.get('/api/player', (req, res) => {
     try {
         res.status(200).send(playerRecord)
+        rollbar.log('player info successfully displayed')
     } catch (error) {
         console.log('ERROR GETTING PLAYER STATS', error)
         res.sendStatus(400)
